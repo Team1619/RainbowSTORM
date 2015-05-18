@@ -1,8 +1,7 @@
 package org.team1619;
 
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.HashSet;
@@ -12,57 +11,47 @@ import javax.swing.JFrame;
 public class MainWindow {
 
 	private JFrame frame;
-	private HashSet<Character> keysPressed = new HashSet<Character>();
+	private HashSet<Integer> keysPressed = new HashSet<Integer>();
 
 	final private RobotConnection rc;
 
 	public MainWindow() {
-		frame = new JFrame();
+		frame = new JFrame("RainbowSTORM");
 		frame.setBounds(100, 100, 450, 300);
 		frame.setAlwaysOnTop(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		KeyboardFocusManager.getCurrentKeyboardFocusManager()
-		.addKeyEventDispatcher(new KeyEventDispatcher() {
+		
+		frame.addKeyListener(new KeyListener() {
+			
 			@Override
-			public boolean dispatchKeyEvent(KeyEvent e) {
-				String s = KeyEvent.getKeyText(e.getKeyCode());
-				char c = 0;
-				if(s.length() == 1) {
-					c = s.charAt(0);
-					if(c < 0 || c > 127)
-						c = 0;
-					if('a' <= c && c <= 'z')
-						c = (char)(c & ~32);
-				}
+			public void keyTyped(KeyEvent e) {
 				
-				switch(e.getID()) {
-				case KeyEvent.KEY_PRESSED:
-					switch(c) {
-					case '\r':
-					case '\n':
-					case '\t':
-					case '\b':
-					case ' ':
-					case 0:
-						break;
-					default:
-						keysPressed.add(c);
-						break;
-					}
-					break;
-				case KeyEvent.KEY_RELEASED:
-					if(keysPressed.contains(c)) {
-						keysPressed.remove(c);
-					}
-					break;
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				int keyCode = e.getKeyCode();
+				if(keysPressed.contains(keyCode)) {
+					keysPressed.remove(keyCode);
 				}
-				return false;
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				int keyCode = e.getKeyCode();
+				switch(keyCode) {
+				case KeyEvent.VK_UNDEFINED:
+				case KeyEvent.VK_CAPS_LOCK:
+					break;
+				default:
+					keysPressed.add(keyCode);
+				}
 			}
 		});
-
-		//rc = new RobotConnection("roboRIO-1619.local", 1619, this);
-		rc = new RobotConnection("localhost", 1619, this);
+		
+		
+		//rc = new RobotConnection("roboRIO-1619.local", RobotConnection.kRobotControlPort, this);
+		rc = new RobotConnection("localhost", RobotConnection.kRobotControlPort, this);
 		new Thread(rc).start();
 
 		frame.addWindowListener(new WindowListener() {
@@ -96,12 +85,12 @@ public class MainWindow {
 		frame.setVisible(true);
 	}
 
-	public char[] getKeys() {
-		char[] arr = new char[keysPressed.size()];
+	public int[] getKeys() {
+		int[] arr = new int[keysPressed.size()];
 
 		int i = 0;
-		for(Character c : keysPressed) {
-			arr[i++] = c;
+		for(Integer integer : keysPressed) {
+			arr[i++] = integer;
 		}
 
 		return arr;

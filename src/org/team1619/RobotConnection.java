@@ -6,6 +6,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class RobotConnection implements Runnable {
+	
+	public final static int kRobotControlPort = 0x666;
 
 	private boolean keepRunning;
 	private final String robotHostName;
@@ -19,7 +21,12 @@ public class RobotConnection implements Runnable {
 	}
 	
 	private void sendKeys(OutputStream os) throws IOException {
-		os.write(("KEYS " + new String(manWindow.getKeys()) + "\n").getBytes());
+		String buffer = "KEYS";
+		int[] keys = manWindow.getKeys();
+		for(int key : keys) {
+			buffer += " " + key;
+		}
+		os.write((buffer + "\n").getBytes());
 		os.flush();
 	}
 	
